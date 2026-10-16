@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
+from day19_ingest_data import load_data
 
 load_dotenv()
 
@@ -30,6 +31,13 @@ collection = chroma_client.get_or_create_collection(name="my_docs")
 class QuestionRequest(BaseModel):
     question: str
     history: list = []
+
+# 检查数据库是否为空，如果为空则自动导入数据
+if collection.count() == 0:
+    print("📚 数据库为空，正在自动导入知识库...")
+    load_data()
+    print("✅ 数据初始化完成")
+
 # ---------- 定义 FastAPI 应用 ----------
 app = FastAPI(title="企业文档问答 API", version="1.0")#Web应用实例
 
