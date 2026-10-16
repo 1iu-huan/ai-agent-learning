@@ -6,6 +6,13 @@
 
 ---
 
+## 🌐 在线 Demo
+- API 文档：https://ai-agent-learning-production-c310.up.railway.app/docs
+- 健康检查：https://ai-agent-learning-production-c310.up.railway.app/health
+- 根路径导航：https://ai-agent-learning-production-c310.up.railway.app/
+
+---
+
 
 ## 📖 项目简介
 
@@ -152,6 +159,7 @@ uvicorn api_server:app --reload --port 8000
 访问 `http://localhost:8000/docs` 查看自动生成的 API 文档。
 
 ---
+
 
 ## 📁 项目结构
 
