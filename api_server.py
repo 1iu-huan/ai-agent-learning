@@ -41,6 +41,14 @@ if collection.count() == 0:
 # ---------- 定义 FastAPI 应用 ----------
 app = FastAPI(title="企业文档问答 API", version="1.0")#Web应用实例
 
+@app.get("/")
+async def root():
+    return {
+        "message": "企业文档问答 API",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 
 #async 是 Python 里的异步编程关键字。用一句大白话解释：它让程序在等待网络请求时，不傻等，而是去处理别的事情。
 @app.post("/ask")#装饰器（Decorator）
