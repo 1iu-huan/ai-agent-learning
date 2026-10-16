@@ -1,5 +1,6 @@
 import os
 import chromadb
+import sys
 from openai import OpenAI
 from dotenv import load_dotenv
 # 假设你把之前的 simple_recursive_split 函数放在这里或者单独导入了
@@ -117,5 +118,5 @@ collection.add(
 )
 print("✅ 知识库导入完成！")
 
-import sys
+
 sys.exit(0)
