@@ -26,7 +26,6 @@ def get_embedding(text):
 # ---------- 连接 Chroma ----------
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="my_docs")
-
 memory_collection = chroma_client.get_or_create_collection(name="user_memory")
 
 #写入记忆函数
