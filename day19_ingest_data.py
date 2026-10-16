@@ -116,3 +116,6 @@ collection.add(
     ids=ids
 )
 print("✅ 知识库导入完成！")
+
+import sys
+sys.exit(0)
