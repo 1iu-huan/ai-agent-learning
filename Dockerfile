@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # 7. 启动命令
-CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api_server:app", "--host", "0.0.0. ", "--port", "8000"]

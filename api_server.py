@@ -6,6 +6,15 @@ from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
 from day19_ingest_data import load_data
+from loguru import logger
+import sys
+from fastapi import FastAPI, HTTPException
+
+# 配置日志：输出到控制台和 app.log 文件
+logger.remove()  # 移除默认配置
+logger.add(sys.stderr, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>")
+logger.add("app.log", rotation="10 MB", retention="7 days", format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}")
+
 
 load_dotenv()
 
@@ -31,10 +40,9 @@ collection = chroma_client.get_or_create_collection(name="my_docs")
 
 # 检查数据库是否为空，如果为空则自动导入数据
 if collection.count() == 0:
-    print("📚 数据库为空，正在自动导入知识库...")
+    logger.info("📚 数据库为空，正在自动导入知识库...")
     load_data()
-    print("✅ 数据初始化完成")
-
+    logger.info("✅ 数据初始化完成")
 
 # ---------- 定义请求体 ----------
 class QuestionRequest(BaseModel):
@@ -58,10 +66,11 @@ async def root():
 async def ask(request: QuestionRequest):
     question = request.question
     history = request.history
+    logger.info(f"收到请求 | 问题: {question} | 历史轮数: {len(history) // 2}")
 
     # 1. 检查缓存（只有无历史记录时才走缓存，防止上下文冲突）
     if not history and question in cache:
-        print(f"✅ 命中缓存：{question}")
+        logger.info(f"✅ 命中缓存: {question}")
         return cache[question]
 
     # 2. 查询改写
@@ -80,6 +89,7 @@ async def ask(request: QuestionRequest):
             temperature=0
         )
         standalone_question = r.choices[0].message.content.strip()
+        logger.info(f"🔄 查询改写 | {question} -> {standalone_question}")
     else:
         standalone_question = question
 
@@ -90,6 +100,7 @@ async def ask(request: QuestionRequest):
             n_results=2
     )
     docs = results['documents'][0]
+    logger.info(f"🔍 检索完成 | 命中 {len(docs)} 个文档块")
     context = "\n".join([f"【文档{i + 1}】{doc}" for i, doc in enumerate(docs)])
 
     # 4. 生成回答（加入防注入提示词）
@@ -108,11 +119,17 @@ async def ask(request: QuestionRequest):
 
 用户问题：{question}
 """
-    response = deepseek_client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.1
-    )
+    try:
+        response = deepseek_client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1
+        )
+    except Exception as e:
+        # ⬇️ 如果报错，记录完整的报错堆栈和问题
+        logger.exception(f"❌ 大模型调用失败 | 问题: {question}")
+        # ⬇️ 并且返回一个友好的 500 错误给前端，而不是让程序崩溃
+        raise HTTPException(status_code=500, detail="大模型服务暂时不可用，请稍后再试")
 
     # 5. 统计 Token 和成本
     usage = response.usage
@@ -121,7 +138,7 @@ async def ask(request: QuestionRequest):
     # DeepSeek 定价：输入 1元/百万token，输出 2元/百万token
     cost = (prompt_tokens / 1_000_000 * 1.0) + (completion_tokens / 1_000_000 * 2.0)
 
-    print(f"💰 本次请求消耗：{usage.total_tokens} tokens，花费 ¥{cost:.6f}")
+    logger.success(f"✅ 生成完毕 | 消耗: {usage.total_tokens} tokens | 花费: ¥{cost:.6f}")
 
     result = {
         "answer": response.choices[0].message.content,

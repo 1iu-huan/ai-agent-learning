@@ -3,3 +3,4 @@ chroma_db/
 .venv/
 .idea/
 __pycache__/
+app.log
