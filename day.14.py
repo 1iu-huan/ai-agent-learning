@@ -112,7 +112,7 @@ for i in range(max_iterations):
 
     #response.choices[0].message:是整个包裹（包含role、content、tool_calls)
     #response.choices[0].message.content:只提取了包裹里的纸条（纯文本内容）
-    messages.append(response.choices[0].message)
+    messages.append(response.choices[0].message)#记录完整的上下文
     tool_calls = response.choices[0].message.tool_calls
 
     #没有工具调用，模型给出最终答案
