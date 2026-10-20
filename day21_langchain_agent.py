@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool  # 1. 从 langchain.tools 导入 tool
 from langchain.agents import create_agent  # 2. 导入 create_agent
+from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()
 
@@ -36,15 +37,37 @@ tools = [calculator, get_weather]
 agent = create_agent(
     model = llm,
     tools = tools,
-    system_prompt = "你是一个得力的助手。"
+    system_prompt = "你是一个得力的助手。",
+    checkpointer = MemorySaver()
 )
 
-# 4. 调用方式也变了：传入一个包含 messages 列表的字典
-print("\n--- 测试 1：单工具调用 ---")
-response1 = agent.invoke({"messages": [{"role": "user", "content": "帮我算一下 25 乘以 4 等于多少？"}]})
-# 最终回答在 messages 列表的最后一条
-print("最终回复:", response1["messages"][-1].content)
+config = {"configurable" : {"thread_id" : "cli-session"}}
 
-print("\n--- 测试 2：多工具混合调用 ---")
-response2 = agent.invoke({"messages": [{"role": "user", "content": "帮我算一下 100 除以 4，再查一下北京的天气。"}]})
-print("最终回复:", response2["messages"][-1].content)
+print("开始对话（输入exit退出）\n")
+
+while True:
+    user_input = input("你：").strip()
+
+    if not user_input:
+        continue
+    if user_input.lower() in ["exit", "quit", "退出"]:
+        print("再见!")
+        break
+
+    # 每次只传这一条消息，历史框架自动捞
+    result = agent.invoke(
+ {"messages": [{"role" : "user", "content" : user_input}]},
+         config,
+    )
+
+    # 取最后一条的文本
+    print("AI:", result["messages"][-1].content, "\n")
+    # 打印完整状态
+    for msg in result["messages"]:
+        role = msg.type
+        if hasattr(msg, "tool_calls") and msg.tool_calls:
+            print(f"[{role}] 调用工具:", msg.tool_calls)
+        else:
+            print(f"[{role}]", msg.content)
+
+
