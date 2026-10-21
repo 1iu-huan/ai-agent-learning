@@ -115,10 +115,38 @@ for q in ["病假工资怎么算？", "你好", "公司年会在哪办？"]:
     #app.invoke()执行完后得到一个完整的最终状态字典（包含 question, route, docs, answer）
     #["answer"]：从返回的字典中，精准提取出 answer 这个键对应的值（也就是那段长长的回答文本）。
     #app.invoke(),就是启动流水线，按照节点一步一步到达END节点，途中经过的节点相当于执行的函数。
-    """LangGraph 采用了声明式的设计。
+    """
+    LangGraph 采用了声明式的设计。
     刚才那段 add_node 和 add_edge 的代码，
     只是在声明和构建一个状态机的拓扑图（拓扑结构），此时并没有执行任何业务逻辑。
     直到调用 .compile() 将图编译为可执行对象，
     并在之后调用 .invoke() 注入初始 State 时，
     系统才会沿着既定的边和条件路由，真正开始执行各个节点函数并流转数据。
     """
+
+"""
+print("问答助手已启动（输入 exit 退出）")
+print("-" * 50)
+
+while True:
+    try:
+        q = input("\n你：").strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\n再见。")
+        break
+
+    if not q:
+        continue
+    if q.lower() in ("exit", "quit", "q", "退出"):
+        print("再见。")
+        break
+
+    try:
+        out = app.invoke({"question": q})
+    except Exception as e:
+        print(f"出错了：{e}")
+        continue
+
+    print(f"[路由: {out['route']}]")
+    print(f"助手：{out['answer']}")
+"""
