@@ -76,6 +76,12 @@ class Tracker:
         if label:#标签
             print(f"    · {label}: 输入 {u.get('input_tokens', 0):>4} / 输出 {u.get('output_tokens', 0):>3} token")
 
+    def reset(self):
+        """每次新任务前清零，避免多次运行的统计混在一起。"""
+        self.calls = 0
+        self.in_tokens = 0
+        self.out_tokens = 0
+
     #@property（属性装饰器）
     #加了 @property 之后，你直接写 tracker.cost（不带括号）就能拿到结果，看起来就像一个变量，实际上跑了一段计算逻辑。
     @property
@@ -131,6 +137,7 @@ class ReportState(TypedDict):
     verdict: str            # "pass" / "revise"
     issues: list            # 评审意见
     rounds: int             # 已迭代轮数
+    max_rounds: int         # 最大迭代轮数（调用时可覆盖）
 
 
 # ---------------------------------------------------------------------------
@@ -294,7 +301,7 @@ def after_review(state: ReportState) -> Literal["writer", "__end__"]:
     if state.get("verdict") == "pass":
         return END
     # 终止条件 2：轮数用尽（防止无限循环）
-    if state.get("rounds", 0) >= 3:
+    if state.get("rounds", 0) >= state.get("max_rounds", 3):
         print("\n⚠️ 已达最大轮数，强制输出（未通过审核）")
         return END
     return "writer"          # ← 这就是"循环"：指回写作者
