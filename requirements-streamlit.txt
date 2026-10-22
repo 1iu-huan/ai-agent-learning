@@ -1,0 +1,12 @@
+# 深度研究助手（Streamlit）镜像的依赖清单
+# 版本与本机验证通过的 venv 保持一致，避免"本地能跑、镜像跑不通"
+streamlit==1.65.0
+langchain-openai==1.7.2
+langchain-chroma==1.1.0
+langchain-core==1.6.12
+langgraph==1.2.16
+langgraph-checkpoint==4.3.0
+chromadb==1.5.9
+pypdf==6.20.0
+python-dotenv==1.2.3
+openai==3.16.2

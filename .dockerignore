@@ -1,0 +1,23 @@
+# 虚拟环境（本机依赖，镜像里会重新装）
+.venv/
+venv/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 版本控制与 IDE
+.git/
+.gitignore
+.idea/
+
+# 密钥：绝对不打进镜像
+.env
+
+# 本地向量库：云端首次启动会自动重建
+chroma_db/
+
+# 日志与临时文件
+app.log
+_tmp_*
+_backup_*
